@@ -19,5 +19,8 @@ pipeline {
                 '''
             }
         }
+        state('Test') {
+            echo 'Test Stage'
+        }
     }
 }
