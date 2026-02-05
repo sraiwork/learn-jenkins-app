@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+        //npm build command execution
         stage('Build') {
             agent {
                 docker {
@@ -19,6 +20,10 @@ pipeline {
                 '''
             }
         }
+        /*
+            npm command not found for this stage since docker destroyed in previous step.
+            hence creattind docker agent again.
+        */
         stage('Test') {
             agent {
                 docker {
