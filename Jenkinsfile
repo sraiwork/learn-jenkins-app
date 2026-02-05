@@ -4,7 +4,6 @@ pipeline {
     stages {
         //npm build command execution
         stage('Build') {
-            cleanWs()
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -12,6 +11,8 @@ pipeline {
                 }
             }
             steps {
+                echo 'Cleanup Workspace'
+                cleanWs()
                 sh '''
                     ls -la
                     npm --version
