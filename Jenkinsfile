@@ -19,7 +19,7 @@ pipeline {
                 '''
             }
         }
-        state('Test') {
+        stage('Test') {
             echo 'Test Stage'
         }
     }
