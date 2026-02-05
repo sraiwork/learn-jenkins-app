@@ -52,7 +52,7 @@ pipeline {
                 sh '''
                     //npm install -g serve
                     npm install serve
-                    node_modules\.bin\serve -s build
+                    node_modules/.bin/serve -s build
                     npx playwright test
                 '''
             }
