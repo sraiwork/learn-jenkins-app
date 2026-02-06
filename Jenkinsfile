@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        NETLIFY_SITE_ID='5f9d8f76-389f-4be9-b96f-004b7e130a69'
-        NETLIFY_AUTH_TOKEN=credentials('netlify-token')
+        NETLIFY_SITE_ID = '03d4042d-476c-4668-9ce8-34352dad73e4'
+        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
     }
 
     stages {
-        //npm build command execution
+
         stage('Build') {
             agent {
                 docker {
@@ -16,54 +16,66 @@ pipeline {
                 }
             }
             steps {
-                //echo 'Cleanup Workspace'
-                //cleanWs()
                 sh '''
                     ls -la
-                    npm --version
                     node --version
+                    npm --version
                     npm ci
                     npm run build
+                    ls -la
                 '''
             }
         }
-        /*
-            npm command not found for this stage since docker destroyed in previous step.
-            hence creattind docker agent again.
-        */
-        stage('Test') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
+
+        stage('Tests') {
+            parallel {
+                stage('Unit tests') {
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
+
+                    steps {
+                        sh '''
+                            #test -f build/index.html
+                            npm test
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'jest-results/junit.xml'
+                        }
+                    }
                 }
-            }            
-            steps {
-                sh '''
-                    echo "Test Stage"
-                    test -f build/index.html
-                    npm test
-                '''
-            }
-        }
-        //Playwright End-to-End testing.
-        stage('E2E') {
-            agent {
-                docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                    reuseNode true
-                    //args '-u rrot:root'
+
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            reuseNode true
+                        }
+                    }
+
+                    steps {
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test  --reporter=html
+                        '''
+                    }
+
+                    post {
+                        always {
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                        }
+                    }
                 }
-            }            
-            steps {
-                sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
-                    sleep 10
-                    npx playwright test --reporter=line
-                '''
             }
         }
+
         stage('Deploy') {
             agent {
                 docker {
@@ -72,23 +84,14 @@ pipeline {
                 }
             }
             steps {
-                //echo 'Cleanup Workspace'
-                //cleanWs()
                 sh '''
                     npm install netlify-cli
                     node_modules/.bin/netlify --version
-                    echo "Deploy to production. Site ID: $NETLIFY_SITE_ID"
+                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    npx node_modules/.bin/netlify deploy --dir=build --prod                
+                    node_modules/.bin/netlify deploy --dir=build --prod
                 '''
             }
-        }                
-    }
-    
-    post {
-        always {
-            junit 'jest-results/junit.xml'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
 }
