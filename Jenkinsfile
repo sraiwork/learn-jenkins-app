@@ -88,6 +88,34 @@ pipeline {
                     npx netlify deploy --dir=./build --prod --no-build              
                 '''
             }
-        }                
+        } 
+        //Playwright End-to-End testing.
+        stage('Production E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                    //args '-u rrot:root'
+                }
+            } 
+
+            environment {
+                CI_ENVIRONMENT_URL = 'https://exquisite-travesseiro-cf8200.netlify.app'
+            }           
+            steps {
+                sh '''
+                    // npm install serve
+                    // node_modules/.bin/serve -s build &
+                    // sleep 10
+                    npx playwright test --reporter=line
+                '''
+            }
+            post {
+                always {
+                    junit 'jest-results/junit.xml'
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                }
+            }            
+        }                      
     }
 }
