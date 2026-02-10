@@ -54,7 +54,7 @@ pipeline {
                     reuseNode true
                     //args '-u rrot:root'
                 }
-            }            
+            }             
             steps {
                 sh '''
                     npm install serve
