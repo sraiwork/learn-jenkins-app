@@ -97,7 +97,7 @@ pipeline {
                     node-jq -r '.deploy_url' deploy-output.json        
                 '''
                 script {
-                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
+                    env.STAGING_URL = sh(script: "node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
                 }
             }
 
@@ -147,7 +147,7 @@ pipeline {
                 //cleanWs()
                 sh '''
                     #npm install netlify-cli
-                    node_modulesnetlify --version
+                    netlify --version
                     echo "Deploy to production. Site ID::: $NETLIFY_SITE_ID"
                     netlify status
                     npx netlify deploy --dir=./build --prod --no-build              
