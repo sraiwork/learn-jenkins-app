@@ -4,16 +4,10 @@ pipeline {
     environment {
         NETLIFY_SITE_ID='5f9d8f76-389f-4be9-b96f-004b7e130a69'
         NETLIFY_AUTH_TOKEN=credentials('netlify-token')
-        REACT_APP_VERSION = "1.0.$BUILD_ID"
+        REACT_APP_VERSION = '1.2.3'
     }
 
     stages {
-
-        // stage('Docker'){
-        //     steps {
-        //         sh 'docker build -t my-playwright .'
-        //     }
-        // }
         //npm build command execution
         stage('Build') {
             agent {
@@ -93,7 +87,7 @@ pipeline {
                     echo "Deploy to Staging. Site ID::: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
                     #npx netlify deploy --dir=./build --no-build      
-                    npx node_modules/.bin/netlify deploy --dir=./build --no-build --json  > deploy-output.json
+                    npx netlify deploy --dir=./build --no-build --json  > deploy-output.json
                     node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json        
                 '''
                 script {
