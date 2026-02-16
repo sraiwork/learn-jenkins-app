@@ -23,8 +23,8 @@ pipeline {
                 }
             }
             steps {
-                echo 'Cleanup Workspace'
-                cleanWs()
+                // echo 'Cleanup Workspace'
+                // cleanWs()
                 sh '''
                     ls -la
                     npm --version
