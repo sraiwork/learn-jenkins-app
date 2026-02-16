@@ -11,7 +11,7 @@ pipeline {
 
         stage('Docker'){
             steps {
-                sh 'docker build -t my-playwright .'
+                sh 'docker build -t my-playwright'
             }
         }
         //npm build command execution
@@ -47,7 +47,7 @@ pipeline {
             }            
             steps {
                 sh '''
-                    echo "Test Stage1111111111111111"
+                    echo "Test Stage"
                     test -f build/index.html
                     npm test
                 '''
@@ -57,14 +57,15 @@ pipeline {
         stage('E2E') {
             agent {
                 docker {
-                    image 'my-playwright'
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
                     //args '-u rrot:root'
                 }
             }            
             steps {
-                sh '''                    
-                    serve -s build &
+                sh '''
+                    npm install serve
+                    node_modules/.bin/serve -s build &
                     sleep 10
                     npx playwright test --reporter=html
                 '''
@@ -79,7 +80,7 @@ pipeline {
         stage('Deploy Staging') {
             agent {
                 docker {
-                    image 'my-playwright'
+                    image 'node:18-alpine'
                     reuseNode true
                 }
             }
@@ -87,16 +88,16 @@ pipeline {
                 //echo 'Cleanup Workspace'
                 //cleanWs()
                 sh '''
-                    #npm install netlify-cli node-jq
-                    netlify --version
+                    npm install netlify-cli node-jq
+                    node_modules/.bin/netlify --version
                     echo "Deploy to Staging. Site ID::: $NETLIFY_SITE_ID"
-                    netlify status
+                    node_modules/.bin/netlify status
                     #npx netlify deploy --dir=./build --no-build      
-                    netlify deploy --dir=./build --json > deploy-output.json
-                    node-jq -r '.deploy_url' deploy-output.json        
+                    npx netlify deploy --dir=./build --no-build --json  > deploy-output.json
+                    node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json        
                 '''
                 script {
-                    env.STAGING_URL = sh(script: "node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
+                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
                 }
             }
 
@@ -104,7 +105,7 @@ pipeline {
         stage('Staging E2E') {
             agent {
                 docker {
-                    image 'my-playwright'
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
                     //args '-u rrot:root'
                 }
@@ -137,7 +138,7 @@ pipeline {
         stage('Deploy Production') {
             agent {
                 docker {
-                    image 'my-playwright'
+                    image 'node:18-alpine'
                     reuseNode true
                 }
             }
@@ -145,10 +146,10 @@ pipeline {
                 //echo 'Cleanup Workspace'
                 //cleanWs()
                 sh '''
-                    #npm install netlify-cli
-                    netlify --version
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
                     echo "Deploy to production. Site ID::: $NETLIFY_SITE_ID"
-                    netlify status
+                    node_modules/.bin/netlify status
                     npx netlify deploy --dir=./build --prod --no-build              
                 '''
             }
@@ -157,7 +158,7 @@ pipeline {
         stage('Production E2E') {
             agent {
                 docker {
-                    image 'my-playwright'
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
                     //args '-u rrot:root'
                 }
