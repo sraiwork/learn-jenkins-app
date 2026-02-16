@@ -92,7 +92,7 @@ pipeline {
                     echo "Deploy to Staging. Site ID::: $NETLIFY_SITE_ID"
                     netlify status
                     #npx netlify deploy --dir=./build --no-build      
-                    netlify deploy --dir=./build --no-build --json > deploy-output.json
+                    netlify deploy --dir=./build --json > deploy-output.json
                     node-jq -r '.deploy_url' deploy-output.json        
                 '''
                 script {
