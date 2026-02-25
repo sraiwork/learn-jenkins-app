@@ -159,7 +159,7 @@ pipeline {
             } 
 
             environment {
-                CI_ENVIRONMENT_URL = 'https://exquisite-travesseiro-cf8200.netlify.app'
+                CI_ENVIRONMENT_URL = 'https://frolicking-faun-991761.netlify.app/'
             }           
             steps {
                 sh '''
